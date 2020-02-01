@@ -5,23 +5,24 @@ from adafruit_button import Button
 import neopixel
 
 
+color_labels = {
+    "red": (255, 0, 0),
+    "yellow": (255, 170, 0),
+    "green": (0, 255, 0),
+}
+
+
 def create_buttons(size=60, offset=10):
     """Create buttons based on colors and positions
 
     Based on code from:
         https://learn.adafruit.com/pyportal-neopixel-color-oicker
     """
-    color_labels = [
-        ("red", (255, 0, 0)),
-        ("yellow", (255, 170, 0)),
-        ("green", (0, 255, 0)),
-    ]
-
     buttons = []
     x = offset
     y = offset
 
-    for label, color in color_labels:
+    for label, color in color_labels.items():
         button = Button(
             x=x, y=y,
             width=size, height=size,
@@ -39,7 +40,6 @@ def chase_pattern(color, offset):
 
     Based on code from:
         https://learn.adafruit.com/gemma-hoop-earrings/circuitpython-code
-
     """
     for i in range(num_pixels):
         if ((offset + i) & (num_pixels)) < 2:
@@ -53,12 +53,12 @@ def chase_pattern(color, offset):
         offset = 0
     return offset
 
-# PyPortal Initialization
 
+# PyPortal Initialization
 background_color = 0x0  # black
-brightness = 0.3        # 30%
+brightness = 0.1        # turn down the brightness
 num_pixels = 5          # 5 pixel strip
-auto_write = False      # call strip.show() to change neopixel vals
+auto_write = False      # call strip.show() to change neopixel values
 
 strip = neopixel.NeoPixel(
     board.D4, num_pixels,
@@ -69,6 +69,8 @@ strip.fill(0)
 pyportal = PyPortal(default_bg=background_color)
 
 buttons = create_buttons()
+# TODO NZ: Do we want to add the buttons to a group before
+#  adding them to the pyportal splash screen
 for button in buttons:
     pyportal.splash.append(button.group)
 
@@ -80,6 +82,13 @@ while True:
     if touch:
         for button in buttons:
             if button.contains(touch):
+                if button.name == "green":
+                    print("Let's display the full battery image.")
+                    pyportal.splash.pop(1)
+                    pyportal.splash.pop(1)
+                    pyportal.splash.pop(1)
+                    pyportal.set_background("images/full.bmp")
+
                 print("Touched", button.name)
                 current_color = button.fill_color
                 break
